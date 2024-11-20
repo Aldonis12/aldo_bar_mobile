@@ -99,6 +99,23 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
   }
 
   TextEditingController _totalToPayController = TextEditingController();
+  double _selectedPercentage = 0.03;
+
+  double roundToNearest50(double value) {
+    return (value / 100).round() * 100.0;
+  }
+
+  void _updateTotalToPay() {
+    double grandTotal = _calculateGrandTotal();
+    double totalPayable = grandTotal - (grandTotal * _selectedPercentage);
+    double roundedTotal = roundToNearest50(totalPayable);
+
+    if (roundedTotal == roundedTotal.toInt()) {
+      _totalToPayController.text = roundedTotal.toInt().toString();
+    } else {
+      _totalToPayController.text = roundedTotal.toStringAsFixed(2);
+    }
+  }
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
@@ -305,6 +322,7 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
                                     onChanged: (String? newValue) {
                                       setState(() {
                                         formData['selectedProduct'] = newValue;
+                                        _updateTotalToPay();
                                       });
                                     },
                                     decoration: InputDecoration(
@@ -333,6 +351,7 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
                                     onChanged: (String? newValue) {
                                       setState(() {
                                         formData['selectedQuantityType'] = newValue;
+                                        _updateTotalToPay();
                                       });
                                     },
                                     decoration: InputDecoration(
@@ -355,6 +374,7 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
                                       setState(() {
                                         formData['quantity'] =
                                             int.tryParse(value) ?? 1;
+                                        _updateTotalToPay();
                                       });
                                     },
                                     validator: (value) {
@@ -409,7 +429,7 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
                     ],
                   ),
                   SizedBox(height: screenHeight * 0.0092),
-                  /*Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
@@ -431,13 +451,14 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
                         onChanged: (double? newValue) {
                           setState(() {
                             _selectedPercentage = newValue ?? 0.04;
+                            _updateTotalToPay();
                           });
                         },
                       ),
                     ],
                   ),
                   SizedBox(height: screenHeight * 0.0092), // Un peu d'espace avant le prochain texte
-                  Row(
+                  /*Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(

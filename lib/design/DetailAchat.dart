@@ -12,8 +12,10 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
   DateTime? _dateDebut;
   DateTime? _dateFin;
   List<dynamic> _produitsEntrants = [];
+  List<dynamic> _paiementAchat = [];
   bool _isLoading = false;
   double _totalPrix = 0.0;
+  double _totalPourcentage = 0.0;
 
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
 
@@ -21,6 +23,52 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
   void initState() {
     super.initState();
     _fetchProduitsEntrants();
+    _fetchProduitPaiement();
+  }
+
+  Future<void> _fetchProduitPaiement() async {
+
+    final DateTime today = DateTime.now();
+
+    String dateDebut;
+    String dateFin;
+
+    late final Uri url;
+
+    if (_dateDebut != null && _dateFin != null) {
+      dateDebut = _dateFormat.format(_dateDebut!);
+      dateFin = _dateFormat.format(_dateFin!);
+      url = Uri.parse('https://aldo-bar.gtouch-admin.com/api/get-paiementAchat?date_debut=$dateDebut&date_fin=$dateFin');
+    } else if (_dateDebut != null) {
+      dateDebut = _dateFormat.format(_dateDebut!);
+      dateFin = dateDebut;
+      url = Uri.parse('https://aldo-bar.gtouch-admin.com/api/get-paiementAchat?date_debut=$dateDebut');
+    } else if (_dateFin != null) {
+      dateDebut = _dateFormat.format(_dateFin!);
+      dateFin = dateDebut;
+      url = Uri.parse('https://aldo-bar.gtouch-admin.com/api/get-paiementAchat?date_fin=$dateFin');
+    } else {
+      dateDebut = _dateFormat.format(today);
+      dateFin = dateDebut;
+      url = Uri.parse('https://aldo-bar.gtouch-admin.com/api/get-paiementAchat');
+    }
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        _paiementAchat = data;
+        _totalPourcentage = _paiementAchat.fold(
+          0.0,
+              (sum, item) => sum + (double.tryParse(item['PrixTotal'].toString()) ?? 0.0),
+        );
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la récupération des données du PaiementAchat')),
+      );
+    }
   }
 
   Future<void> _fetchProduitsEntrants() async {
@@ -129,12 +177,22 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
             ),
             SizedBox(height: screenHeight * 0.011),
             ElevatedButton(
-              onPressed: _isLoading ? null : _fetchProduitsEntrants,
+              onPressed: _isLoading ? null : () {
+                _fetchProduitsEntrants();
+                _fetchProduitPaiement();
+              },
               child: Text(_isLoading ? 'Chargement...' : 'Rechercher'),
             ),
             SizedBox(height: screenHeight * 0.023),
-            Text(
+            /*Text(
               'Somme Totale : ${NumberFormat("#,##0.00", "fr_FR").format(_totalPrix)} AR',
+              style: TextStyle(
+                fontSize: screenHeight * 0.020,
+                fontWeight: FontWeight.bold,
+              ),
+            ),*/
+            Text(
+              'Somme Total : ${NumberFormat("#,##0.00", "fr_FR").format(_totalPourcentage)} AR',
               style: TextStyle(
                 fontSize: screenHeight * 0.020,
                 fontWeight: FontWeight.bold,
@@ -148,6 +206,27 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
                 itemCount: _produitsEntrants.length,
                 itemBuilder: (context, index) {
                   final produit = _produitsEntrants[index];
+
+                  final quantity = produit['quantite'];
+                  int quantityCagot = produit['produit']['quantite_cagot'] ?? 0;
+
+                  String resultText = '';
+
+                  if (quantityCagot > 0) {
+                    int cagots = (quantity / quantityCagot).floor();
+                    int bottles = quantity % quantityCagot;
+
+                    if (cagots > 0) {
+                      resultText += '$cagots Cagots';
+                    }
+                    if (bottles > 0) {
+                      if (resultText.isNotEmpty) resultText += ' et ';
+                      resultText += '$bottles Bouteilles';
+                    }
+                  } else {
+                    resultText = '$quantity Bouteilles';
+                  }
+
                   return Card(
                     child: ListTile(
                       title: Text(
@@ -171,13 +250,21 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
                           ),
                           SizedBox(height: screenHeight * 0.005),
                           Text(
+                            '$resultText',
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: screenHeight * 0.0184,
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.005),
+                          /*Text(
                             'Prix Total : ${produit['PrixTotal']} AR',
                             style: TextStyle(
                               color: Colors.green,
                               fontSize: screenHeight * 0.0184,
                             ),
                           ),
-                          SizedBox(height: screenHeight * 0.005),
+                          SizedBox(height: screenHeight * 0.005),*/
                           Text(
                             'Date : ${DateFormat('yyyy-MM-dd').format(DateTime.parse(produit['inserted']))}',
                             style: TextStyle(

@@ -51,6 +51,10 @@ class _ProductsaleFormPageState extends State<ProductsaleFormPage> {
     _fetchProducts();
   }
 
+  double roundToNearest100(double value) {
+    return (value / 100).round() * 100.0;
+  }
+
   double _calculateTotal(Map<String, dynamic> formData) {
     final selectedProductId = formData['selectedProduct'];
     if (selectedProductId == null) return 0.0;
@@ -66,12 +70,15 @@ class _ProductsaleFormPageState extends State<ProductsaleFormPage> {
         ? double.tryParse(product['prix'].toString()) ?? 0.0
         : double.tryParse(product['prix_cagot'].toString()) ?? 0.0;
 
-    return price * formData['quantity'];
+    double total = price * formData['quantity'];
+
+    return roundToNearest100(total);
   }
 
   String _formatTotal(double total) {
-    final numberFormat = NumberFormat("#,##0", "fr_FR");  // Format français avec séparateur de milliers
-    return numberFormat.format(total);
+    double retotal = roundToNearest100(total);
+    final numberFormat = NumberFormat("#,##0", "fr_FR");
+    return numberFormat.format(retotal);
   }
 
   double _calculateGrandTotal() {

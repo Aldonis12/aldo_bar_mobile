@@ -149,6 +149,27 @@ class _ProduitSortantPageState extends State<ProduitSortantPage> {
                 itemCount: _produitsEntrants.length,
                 itemBuilder: (context, index) {
                   final produit = _produitsEntrants[index];
+
+                  final quantity = produit['quantite'];
+                  int quantityCagot = produit['produit']['quantite_cagot'] ?? 0;
+
+                  String resultText = '';
+
+                  if (quantityCagot > 0) {
+                    int cagots = (quantity / quantityCagot).floor();
+                    int bottles = quantity % quantityCagot;
+
+                    if (cagots > 0) {
+                      resultText += '$cagots Cagots';
+                    }
+                    if (bottles > 0) {
+                      if (resultText.isNotEmpty) resultText += ' et ';
+                      resultText += '$bottles Bouteilles';
+                    }
+                  } else {
+                    resultText = '$quantity Bouteilles';
+                  }
+
                   return Card(
                     child: ListTile(
                       title: Text(
@@ -167,6 +188,14 @@ class _ProduitSortantPageState extends State<ProduitSortantPage> {
                             'Quantité : ${produit['quantite']}',
                             style: TextStyle(
                               color: Colors.blueAccent,
+                              fontSize: screenHeight * 0.0184,
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.005),
+                          Text(
+                            '$resultText',
+                            style: TextStyle(
+                              color: Colors.grey[700],
                               fontSize: screenHeight * 0.0184,
                             ),
                           ),

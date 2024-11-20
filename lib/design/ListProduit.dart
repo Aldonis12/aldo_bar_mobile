@@ -13,6 +13,7 @@ class _ProductGridPageState extends State<ProductGridPage> {
   List _filteredProducts = [];
   TextEditingController _searchController = TextEditingController();
   double _quantityFilter = 0;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -65,14 +66,24 @@ class _ProductGridPageState extends State<ProductGridPage> {
   }
 
   Future<void> fetchProducts() async {
-    final response = await http.get(Uri.parse('https://aldo-bar.gtouch-admin.com/api/get-produits'));
-    if (response.statusCode == 200) {
+    try {
+      final response = await http.get(Uri.parse('https://aldo-bar.gtouch-admin.com/api/get-produits'));
+      if (response.statusCode == 200) {
+        setState(() {
+          _products = json.decode(response.body);
+          _filteredProducts = _products;
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load products');
+      }
+    } catch (error) {
       setState(() {
-        _products = json.decode(response.body);
-        _filteredProducts = _products;
+        _isLoading = false;
       });
-    } else {
-      throw Exception('Failed to load products');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Erreur lors du chargement des bouteilles'),
+      ));
     }
   }
 
@@ -184,7 +195,14 @@ class _ProductGridPageState extends State<ProductGridPage> {
       appBar: AppBar(
         title: Text("Liste des Produits"),
       ),
-      body: Padding(
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _products.isEmpty
+          ? Center(
+        child: Text ("Aucun produit trouvée",
+        style: TextStyle(fontSize: screenHeight * 0.02),
+      ),
+      ) : Padding(
         padding: EdgeInsets.all(screenHeight * 0.0092),
         child: Column(
           children: [

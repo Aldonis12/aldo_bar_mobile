@@ -15,7 +15,7 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
     {'selectedProduct': null, 'selectedQuantityType': 'Nombre', 'quantity': 1}
   ];
   List<Map<String, dynamic>> _products = [];
-  String _selectedDate = '';  // Variable pour stocker la date sélectionnée
+  String _selectedDate = '';
 
   Future<void> _fetchProducts() async {
     try {
@@ -73,7 +73,7 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
   }
 
   String _formatTotal(double total) {
-    final numberFormat = NumberFormat("#,##0", "fr_FR");  // Format français avec séparateur de milliers
+    final numberFormat = NumberFormat("#,##0", "fr_FR");
     return numberFormat.format(total);
   }
 
@@ -104,7 +104,6 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      // Map de données produits
       final purchaseDataList = _formDataList.map((formData) {
         return {
           'idProduit': formData['selectedProduct'],
@@ -113,11 +112,9 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
         };
       }).toList();
 
-      // Calcul du total général
       double totalGeneral = _calculateGrandTotal();
       double totalToPay = double.tryParse(_totalToPayController.text) ?? totalGeneral;
 
-      // Structure de la requête
       final requestData = {
         'produits': purchaseDataList,
         'date': _selectedDate.isEmpty ? null : _selectedDate,
@@ -179,7 +176,7 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
             actions: [
               TextButton.icon(
                 onPressed: () {
-                  Navigator.of(context).pop(); // Fermer la boîte de dialogue sans soumettre
+                  Navigator.of(context).pop();
                 },
                 icon: Icon(Icons.cancel, color: Colors.red),
                 label: Text('Annuler', style: TextStyle(color: Colors.red)),
@@ -193,7 +190,6 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
                       body: json.encode(requestData),
                     );
 
-                    // Vérification de la réponse
                     if (response.statusCode == 200 || response.statusCode == 201) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Produit(s) acheté(s) avec succès')),
@@ -216,7 +212,7 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Une erreur est survenue: $e')),
                     );
-                    Navigator.of(context).pop(); // Fermer la boîte de dialogue en cas d'erreur
+                    Navigator.of(context).pop();
                   }
                 },
                 icon: Icon(Icons.check, color: Colors.green),
@@ -229,8 +225,6 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
     }
   }
 
-
-  // Méthode pour choisir une date
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -240,7 +234,7 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
     );
     if (picked != null) {
       setState(() {
-        _selectedDate = DateFormat('yyyy-MM-dd').format(picked);  // Format de la date
+        _selectedDate = DateFormat('yyyy-MM-dd').format(picked);
       });
     }
   }
@@ -259,7 +253,6 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
           key: _formKey,
           child: Column(
             children: [
-              // Affichage de la date sélectionnée en haut
               Padding(
                 padding: EdgeInsets.only(bottom: screenHeight * 0.0184),
                 child: Row(
@@ -411,11 +404,11 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
                       ),
                       Text(
                         '${_formatTotal(_calculateGrandTotal())} Ar',
-                        style: TextStyle(fontSize: screenHeight * 0.020, fontWeight: FontWeight.bold, color: Colors.red), // Rouge pour le Total général
+                        style: TextStyle(fontSize: screenHeight * 0.020, fontWeight: FontWeight.bold, color: Colors.red),
                       ),
                     ],
                   ),
-                  SizedBox(height: screenHeight * 0.0092), // Un peu d'espace entre les deux lignes
+                  SizedBox(height: screenHeight * 0.0092),
                   /*Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -453,7 +446,7 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
                       ),
                       Text(
                         '${_formatTotal(_calculateGrandTotal() - (_calculateGrandTotal() * _selectedPercentage))} Ar',
-                        style: TextStyle(fontSize: screenHeight * 0.020, fontWeight: FontWeight.bold, color: Colors.green), // Vert pour le Total à payer
+                        style: TextStyle(fontSize: screenHeight * 0.020, fontWeight: FontWeight.bold, color: Colors.green),
                       ),
                     ],
                   ),*/
@@ -506,8 +499,8 @@ class _ProductPurchaseFormPageState extends State<ProductPurchaseFormPage> {
                   ElevatedButton(
                     onPressed: _submitForm,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.lightGreen),
-                    child: Text('Soumettre',
+                      backgroundColor: Colors.redAccent),
+                    child: Text('Valider',
                       style: TextStyle(
                         color: Colors.white)),
                   ),

@@ -113,7 +113,7 @@ class _ProduitSortantPageState extends State<ProduitSortantPage> {
                   child: TextButton(
                     onPressed: () => _selectDate(context, true),
                     child: Text(_dateDebut == null
-                        ? 'Sélectionner Date Début'
+                        ? 'Date Début'
                         : 'Date Début: ${_dateFormat.format(_dateDebut!)}'),
                   ),
                 ),
@@ -122,7 +122,7 @@ class _ProduitSortantPageState extends State<ProduitSortantPage> {
                   child: TextButton(
                     onPressed: () => _selectDate(context, false),
                     child: Text(_dateFin == null
-                        ? 'Sélectionner Date Fin'
+                        ? 'Date Fin'
                         : 'Date Fin: ${_dateFormat.format(_dateFin!)}'),
                   ),
                 ),

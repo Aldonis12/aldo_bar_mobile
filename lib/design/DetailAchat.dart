@@ -13,7 +13,7 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
   DateTime? _dateFin;
   List<dynamic> _produitsEntrants = [];
   bool _isLoading = false;
-  double _totalPrix = 0.0; // Variable pour stocker la somme des prix
+  double _totalPrix = 0.0;
 
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
 
@@ -69,7 +69,6 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la récupération des données')),
       );
-      print("Erreur: ${response.statusCode}");
     }
 
     setState(() {
@@ -113,7 +112,7 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
                   child: TextButton(
                     onPressed: () => _selectDate(context, true),
                     child: Text(_dateDebut == null
-                        ? 'Sélectionner Date Début'
+                        ? 'Date Début'
                         : 'Date Début: ${_dateFormat.format(_dateDebut!)}'),
                   ),
                 ),
@@ -122,7 +121,7 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
                   child: TextButton(
                     onPressed: () => _selectDate(context, false),
                     child: Text(_dateFin == null
-                        ? 'Sélectionner Date Fin'
+                        ? 'Date Fin'
                         : 'Date Fin: ${_dateFormat.format(_dateFin!)}'),
                   ),
                 ),
@@ -156,17 +155,17 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
                         style: TextStyle(
                           fontSize: screenHeight * 0.020,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87, // Couleur du titre
+                          color: Colors.black87,
                         ),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: screenHeight * 0.005), // Espace entre le titre et les sous-titres
+                          SizedBox(height: screenHeight * 0.005),
                           Text(
                             'Quantité : ${produit['quantite']}',
                             style: TextStyle(
-                              color: Colors.blueAccent, // Couleur de la quantité
+                              color: Colors.blueAccent,
                               fontSize: screenHeight * 0.0184,
                             ),
                           ),
@@ -174,15 +173,15 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
                           Text(
                             'Prix Total : ${produit['PrixTotal']} AR',
                             style: TextStyle(
-                              color: Colors.green, // Couleur du prix
+                              color: Colors.green,
                               fontSize: screenHeight * 0.0184,
                             ),
                           ),
-                          SizedBox(height: screenHeight * 0.005), // Espace entre les informations
+                          SizedBox(height: screenHeight * 0.005),
                           Text(
                             'Date : ${DateFormat('yyyy-MM-dd').format(DateTime.parse(produit['inserted']))}',
                             style: TextStyle(
-                              color: Colors.grey[700], // Couleur grise pour la date
+                              color: Colors.grey[700],
                               fontSize: screenHeight * 0.0184,
                             ),
                           ),

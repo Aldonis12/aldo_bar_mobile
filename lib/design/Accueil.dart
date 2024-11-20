@@ -151,7 +151,7 @@ class _HomeAccueilState extends State<HomeAccueil> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, route);  // Navigation vers la route spécifiée
+        Navigator.pushNamed(context, route);
       },
       child: AspectRatio(
         aspectRatio: 2.60 / 3,

@@ -9,12 +9,15 @@ class BottleListPage extends StatefulWidget {
 
 class _BottleListPageState extends State<BottleListPage> {
   List _bottles = [];
+  List _filteredBottles = [];
   bool _isLoading = true;
+  TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     fetchBottles();
+    _searchController.addListener(_filterBottles);
   }
 
   Future<void> fetchBottles() async {
@@ -23,12 +26,14 @@ class _BottleListPageState extends State<BottleListPage> {
 
       if (response.statusCode == 200) {
         setState(() {
-          _bottles = json.decode(response.body).map((bottle) {
+          _bottles = json.decode(response.body).map((bouteille) {
             return {
-              'nomProduit': bottle['produit']?['nom'] ?? 'Produit inconnu',
-              'quantite': bottle['quantite'] ?? 0,
+              'nomProduit': bouteille['produit']?['nom'] ?? 'Produit inconnu',
+              'quantite': bouteille['quantite'] ?? 0,
+              'quantite_cagot': bouteille['produit']?['quantite_cagot'] ?? 0,
             };
           }).toList();
+          _filteredBottles = _bottles;  // Initially show all bottles
           _isLoading = false;
         });
       } else {
@@ -44,17 +49,41 @@ class _BottleListPageState extends State<BottleListPage> {
     }
   }
 
+  // Filter bottles based on search input
+  void _filterBottles() {
+    String query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredBottles = _bottles.where((bottle) {
+        return bottle['nomProduit'].toLowerCase().contains(query);
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Liste des Bouteilles"),
+        title: Text("Liste de mes Bouteilles"),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(50),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: "Rechercher un produit",
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+        ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : _bottles.isEmpty
+          : _filteredBottles.isEmpty
           ? Center(
         child: Text(
           "Aucune bouteille trouvée",
@@ -64,25 +93,41 @@ class _BottleListPageState extends State<BottleListPage> {
           : Padding(
         padding: EdgeInsets.all(screenHeight * 0.01),
         child: ListView.builder(
-          itemCount: _bottles.length,
+          itemCount: _filteredBottles.length,
           itemBuilder: (context, index) {
-            final bottle = _bottles[index];
-            final name = bottle['nomProduit']; // Le nom du produit
-            final quantity = bottle['quantite']; // La quantité de bouteilles
+            final bottle = _filteredBottles[index];
+            final name = bottle['nomProduit'];
+            final quantity = bottle['quantite'];
+            final quantityCagot = bottle['quantite_cagot'];
+
+            String resultText = '';
+            if (quantityCagot > 0) {
+              int cagots = (quantity / quantityCagot).floor();
+              int bottles = quantity % quantityCagot;
+
+              if (cagots > 0) {
+                resultText += '$cagots Cagots';
+              }
+              if (bottles > 0) {
+                if (resultText.isNotEmpty) resultText += ' et ';
+                resultText += '$bottles Bouteilles';
+              }
+            } else {
+              resultText = '$quantity Bouteilles';
+            }
 
             return Card(
               elevation: 3,
               margin: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
               child: ListTile(
                 title: Text(
-                  name,
+                  '$name ($quantity)',
                   style: TextStyle(fontSize: screenHeight * 0.02),
                 ),
                 subtitle: Text(
-                  '$quantity bouteilles',
+                  resultText.isEmpty ? 'Pas de stock disponible' : resultText,
                   style: TextStyle(fontSize: screenHeight * 0.018),
                 ),
-                //leading: Icon(Icons.local_drink, color: Colors.blue),
               ),
             );
           },

@@ -191,10 +191,13 @@ class _AddMouvementCaissePageState extends State<AddMouvementCaissePage> {
               SizedBox(height: screenHeight * 0.023),
 
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue),
                 onPressed: _isSubmitting ? null : addMouvementCaisse,
                 child: _isSubmitting
                     ? CircularProgressIndicator(color: Colors.white)
-                    : Text('Soumettre'),
+                    : Text('Ajouter', style: TextStyle(
+                    color: Colors.white))
               ),
             ],
           ),

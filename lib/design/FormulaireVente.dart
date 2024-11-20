@@ -99,7 +99,6 @@ class _ProductsaleFormPageState extends State<ProductsaleFormPage> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      // Map de données produits
       final saleDataList = _formDataList.map((formData) {
         return {
           'idProduit': formData['selectedProduct'],
@@ -114,13 +113,8 @@ class _ProductsaleFormPageState extends State<ProductsaleFormPage> {
         'date': _selectedDate.isEmpty ? null : _selectedDate,
       };
 
-      // Affichage de la structure de la requête pour débogage
-      print('Request Data: $requestData');
-
-      // Calcul du total
       double totalGeneral = _calculateGrandTotal();
 
-      // Affichage de la boîte de dialogue de confirmation
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -177,14 +171,12 @@ class _ProductsaleFormPageState extends State<ProductsaleFormPage> {
               TextButton.icon(
                 onPressed: () async {
                   try {
-                    // Requête HTTP POST avec la structure ajustée
                     final response = await http.post(
                       Uri.parse('https://aldo-bar.gtouch-admin.com/api/add-produitsortant'),
                       headers: {'Content-Type': 'application/json'},
-                      body: json.encode(requestData), // Utilisation de requestData
+                      body: json.encode(requestData),
                     );
 
-                    // Vérification de la réponse
                     if (response.statusCode == 200 || response.statusCode == 201) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Mise en vente avec succès')),
@@ -424,7 +416,7 @@ class _ProductsaleFormPageState extends State<ProductsaleFormPage> {
                     onPressed: _submitForm,
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue),
-                    child: Text('Soumettre',
+                    child: Text('Valider',
                         style: TextStyle(
                             color: Colors.white)),
                   ),

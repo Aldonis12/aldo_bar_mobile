@@ -99,6 +99,13 @@ class NavBar extends StatelessWidget{
                 Navigator.pushNamed(context, '/ajout-mvtcaisse')
               },
             ),
+            ListTile(
+              leading: Icon(Icons.local_drink_outlined),
+              title: Text('Mes bouteilles'),
+              onTap: () => {
+                Navigator.pushNamed(context, '/ajout-mycagot')
+              },
+            ),
           ],
         ),
         Divider(),

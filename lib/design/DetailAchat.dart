@@ -71,6 +71,73 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
     }
   }
 
+  void _deleteProduitByDate(String date) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Supprimer les achats du $date'),
+          content: Text('Êtes-vous sûr de vouloir supprimer les achats pour cette date ?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await _deleteFromServer(date);
+                Navigator.of(context).pop();
+                setState(() {
+                  _fetchProduitPaiement();
+                  _fetchProduitsEntrants();
+                });
+              },
+              child: Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showError(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteFromServer(String date) async {
+    final response = await http.delete(
+      Uri.parse('https://aldo-bar.gtouch-admin.com/api/delete-produitentrant/$date'),
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _fetchProduitPaiement();
+        _fetchProduitsEntrants();
+      });
+    } else {
+      _showError('Erreur', 'Suppression échouée');
+    }
+  }
+
+
   Future<void> _fetchProduitsEntrants() async {
     setState(() {
       _isLoading = true;
@@ -107,7 +174,6 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
       final data = json.decode(response.body);
       setState(() {
         _produitsEntrants = data;
-        // Calcul du prix total
         _totalPrix = _produitsEntrants.fold(
           0.0,
               (sum, item) => sum + (double.tryParse(item['PrixTotal'].toString()) ?? 0.0),
@@ -274,6 +340,11 @@ class _ProduitEntrantPageState extends State<ProduitEntrantPage> {
                           ),
                         ],
                       ),
+                      onLongPress: () {
+                        _deleteProduitByDate(
+                          DateFormat('yyyy-MM-dd').format(DateTime.parse(produit['inserted'])),
+                        );
+                      },
                     ),
                   );
                 },

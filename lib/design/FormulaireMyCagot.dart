@@ -133,7 +133,7 @@ class _AddCagotPageState extends State<AddCagotPage> {
 
                     if (response.statusCode == 200 || response.statusCode == 201) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Mise en vente avec succès')),
+                        SnackBar(content: Text('Mise en stock avec succès')),
                       );
                       _formKey.currentState!.reset();
                       setState(() {

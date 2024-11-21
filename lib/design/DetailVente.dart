@@ -76,6 +76,70 @@ class _ProduitSortantPageState extends State<ProduitSortantPage> {
     });
   }
 
+  void _deleteProduitById(String id) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Supprimer cette vente'),
+          content: Text('Êtes-vous sûr de vouloir le supprimer ?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await _deleteFromServer(id);
+                Navigator.of(context).pop();
+                setState(() {
+                  _fetchProduitsEntrants();
+                });
+              },
+              child: Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showError(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteFromServer(String id) async {
+    final response = await http.delete(
+      Uri.parse('https://aldo-bar.gtouch-admin.com/api/delete-produitsortant/$id'),
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _fetchProduitsEntrants();
+      });
+    } else {
+      _showError('Erreur', 'Suppression échouée');
+    }
+  }
+
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -217,6 +281,11 @@ class _ProduitSortantPageState extends State<ProduitSortantPage> {
                           ),
                         ],
                       ),
+                      onLongPress: () {
+                        _deleteProduitById(
+                          produit['id'].toString(),
+                        );
+                      },
                     ),
                   );
                 },

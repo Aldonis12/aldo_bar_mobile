@@ -56,6 +56,96 @@ class _MouvementCaissePageState extends State<MouvementCaissePage> {
     }
   }
 
+  Future<void> _updateMouvement(String id, String libelle, String prix) async {
+    TextEditingController _priceController = TextEditingController(text: prix);
+    TextEditingController _libelleController = TextEditingController(text: libelle);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Modifier Mouvement'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _priceController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Prix'),
+              ),
+              TextField(
+                controller: _libelleController,
+                decoration: InputDecoration(labelText: 'Libellé'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final String url = 'https://aldo-bar.gtouch-admin.com/api/update-mvtcaisse/$id';
+                final response = await http.post(
+                  Uri.parse(url),
+                  body: {
+                    'prix': _priceController.text,
+                    'libelle': _libelleController.text,
+                  },
+                );
+
+                if (response.statusCode == 200) {
+                  setState(() {
+                    fetchMouvements();
+                  });
+                  Navigator.of(context).pop();
+                } else {
+                  _showError('Erreur', 'Mise à jour échouée');
+                }
+              },
+              child: Text('Mettre à jour'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteMouvement(int id) async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Confirmer la suppression'),
+          content: Text('Voulez-vous vraiment supprimer ce mouvement ?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final String url = 'https://aldo-bar.gtouch-admin.com/api/delete-mvtcaisse/$id';
+                final response = await http.delete(Uri.parse(url));
+
+                if (response.statusCode == 200) {
+                  setState(() {
+                    fetchMouvements();
+                  });
+                  Navigator.of(context).pop();
+                } else {
+                  _showError('Erreur', 'Suppression échouée');
+                }
+              },
+              child: Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showError(String title, String content) {
     showDialog(
       context: context,
@@ -155,6 +245,12 @@ class _MouvementCaissePageState extends State<MouvementCaissePage> {
                           Text('Description: ${mouvement['libelle']}'),
                         ],
                       ),
+                      onTap: () => _updateMouvement(
+                        mouvement['id'].toString(),
+                        mouvement['libelle'],
+                        mouvement['prix'],
+                      ),
+                      onLongPress: () => _deleteMouvement(mouvement['id']),
                     ),
                   );
                 },

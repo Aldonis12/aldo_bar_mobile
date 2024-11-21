@@ -28,12 +28,13 @@ class _BottleListPageState extends State<BottleListPage> {
         setState(() {
           _bottles = json.decode(response.body).map((bouteille) {
             return {
+              'id': bouteille['idProduit'],
               'nomProduit': bouteille['produit']?['nom'] ?? 'Produit inconnu',
               'quantite': bouteille['quantite'] ?? 0,
               'quantite_cagot': bouteille['produit']?['quantite_cagot'] ?? 0,
             };
           }).toList();
-          _filteredBottles = _bottles;  // Initially show all bottles
+          _filteredBottles = _bottles;
           _isLoading = false;
         });
       } else {
@@ -49,7 +50,6 @@ class _BottleListPageState extends State<BottleListPage> {
     }
   }
 
-  // Filter bottles based on search input
   void _filterBottles() {
     String query = _searchController.text.toLowerCase();
     setState(() {
@@ -57,6 +57,110 @@ class _BottleListPageState extends State<BottleListPage> {
         return bottle['nomProduit'].toLowerCase().contains(query);
       }).toList();
     });
+  }
+
+  Future<void> _updateBottle(final id, int quantity) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://aldo-bar.gtouch-admin.com/api/update-mycagot/$id/$quantity'),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Produit mis à jour avec succès')),
+        );
+        fetchBottles();
+      } else {
+        throw Exception('Failed to update bottle');
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la mise à jour')),
+      );
+    }
+  }
+
+  Future<void> _deleteBottle(final id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('https://aldo-bar.gtouch-admin.com/api/delete-mycagot/$id'),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Produit supprimé avec succès')),
+        );
+        fetchBottles();
+      } else {
+        throw Exception('Failed to delete bottle');
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la suppression')),
+      );
+    }
+  }
+
+  void _showUpdateDialog(final id, String productName, int currentQuantity) {
+    TextEditingController _quantityController = TextEditingController(text: currentQuantity.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Modifier le produit : $productName'),
+          content: TextField(
+            controller: _quantityController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Quantité actuelle : $currentQuantity'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                int newQuantity = int.tryParse(_quantityController.text) ?? currentQuantity;
+                _updateBottle(id, newQuantity);
+                Navigator.of(context).pop();
+              },
+              child: Text('Mettre à jour'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  void _showDeleteConfirmation(final id, String name, int qtt) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Supprimer le produit $name ($qtt bouteilles)'),
+          content: Text('Êtes-vous sûr de vouloir supprimer le produit?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _deleteBottle(id);
+                Navigator.of(context).pop();
+              },
+              child: Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -96,6 +200,7 @@ class _BottleListPageState extends State<BottleListPage> {
           itemCount: _filteredBottles.length,
           itemBuilder: (context, index) {
             final bottle = _filteredBottles[index];
+            final id = bottle['id'];
             final name = bottle['nomProduit'];
             final quantity = bottle['quantite'];
             final quantityCagot = bottle['quantite_cagot'];
@@ -128,6 +233,8 @@ class _BottleListPageState extends State<BottleListPage> {
                   resultText.isEmpty ? 'Pas de stock disponible' : resultText,
                   style: TextStyle(fontSize: screenHeight * 0.018),
                 ),
+                onTap: () => _showUpdateDialog(id,name, quantity),
+                onLongPress: () => _showDeleteConfirmation(id, name, quantity),
               ),
             );
           },
